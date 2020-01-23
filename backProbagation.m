@@ -1,8 +1,9 @@
-function [weight21,weight22] = backProbagation(input, layer1,weight1,weight2,y,output)
-    d_weight2=layer1'*(2*(y(1,:)-output).*sigmoid_deriv(output))  ;%derivé d1
-    d_weight1=input'*(((2*(y(1,:)-output).*sigmoid_deriv(output))*weight2').*sigmoid_deriv(layer1)); %dérivé d2
+function [Weight21,Weight22] = BackProbagation(Input,Layer1,Weight1,Weight2,y,Output)
+    
+    d_weight2=Layer1'*(2*(y(1,:)-Output).*SigmoidDerive(Output))  ;
+    d_weight1=Input'*(((2*(y(1,:)-Output).*SigmoidDerive(Output))*Weight2').*SigmoidDerive(Layer1)); 
 
 
-    weight22=weight2+d_weight2;%gradient theta1
-    weight21=weight1+d_weight1;%gradient theta2
+    Weight22=Weight2+d_weight2*0.2;%Alpha = 01
+    Weight21=Weight1+d_weight1*0.2;
 end
