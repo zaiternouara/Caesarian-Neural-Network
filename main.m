@@ -1,55 +1,89 @@
 
+clear ; close all; clc;
+
 Donnee = load('caesarian.txt');
-x = Donnee(1:78, [1:5]);
-y = Donnee(1:78, 6);
-XTest = Donnee(55:78, [1:5]);
-YTest = Donnee(55:78, 6);
+X = Donnee(1:78, [1:5]);
+Y = Donnee(1:78, 6);
 
 
-for j=1:78 %nombre dechantillon a parcourir 
- x(j,1)= (max(x(:,1))-x(j,1))/(max(x(:,1))-min(x(:,1)));
- x(j,2)= (max(x(:,2))-x(j,2))/(max(x(:,2))-min(x(:,2)));
- x(j,3)= (max(x(:,3))-x(j,3))/(max(x(:,3))-min(x(:,3)));
- x(j,4)= (max(x(:,4))-x(j,4))/(max(x(:,4))-min(x(:,4)));
-end
 
+%Normalisation des données
+    for j=1:78 %Nombre d'échantillon à parcourir
+        X(j,1)= (max(X(:,1))-X(j,1))/(max(X(:,1))-min(X(:,1)));
+        X(j,2)= (max(X(:,2))-X(j,2))/(max(X(:,2))-min(X(:,2)));
+        X(j,3)= (max(X(:,3))-X(j,3))/(max(X(:,3))-min(X(:,3)));
+        X(j,4)= (max(X(:,4))-X(j,4))/(max(X(:,4))-min(X(:,4)));
+        X(j,5)= (max(X(:,5))-X(j,5))/(max(X(:,5))-min(X(:,5)));
+    end
 
+% 70% Pour l'apprentissage des features
+Xapprentissage = X(1:54, [1:5]);
+Yapprentissage = Donnee(1:54, 6);
+%15% pour le test
+XTest = X(55:66, [1:5]);
+YTest = Donnee(55:66, 6);
+%15% pour la validation
+XValidation = X(67:78, [1:5]);
+YValidation = Donnee(67:78, 6);
 nb_output=1;
 
 nb_noeud=6;
-layer1 = zeros(1,nb_noeud); %tableau de la couche caché
+couche1 = rand(1,nb_noeud); %tableau de la couche caché
 
-
-
-
-
-weight1= rand(size(x,2),nb_noeud); %generer aleatoirement le tableau des poids de la premiere couche
-weight2 = rand(nb_noeud,nb_output); %generer aleatoirement le tableau des poifs de la 2eme couche
-coste=[];
-
+poids1= rand(size(X,2),nb_noeud); %generer aleatoirement le tableau des poids de la premiere couche
+poids2 = rand(nb_noeud,nb_output); %generer aleatoirement le tableau des poifs de la 2eme couche
+cost=[];
+nbrIteration = 100; 
 %entrainement
-for k=1:500 %nombre iterration
-  c =[];
-for j=1:size(x,1)-22 %nombre dechantillon a parcourir 
-  [layer1,output]= feedforward(x(j,:),weight1,weight2); %caclule du output 'hypothese' avec les poid en entrer
-  display(layer1);
-  [weight1,weight2]=BackProbagation(x(j,:),layer1,weight1,weight2,y(j,:),output); %modifier les poids en fonctions du output trouvÃ©
-  c= [c; (y(j)-output).^2];
- 
-end
-coste=[coste;sum(c)];
-
-end
-coste=coste/(size(x,1)*2);
-
-plot_cost(coste);
-plot_resultat(x,weight1,weight2,y);
-
-
-P=Precision(x, y, layer1);
-PrecisionTest=Precision(XTest, YTest, layer1);
+for i=1:nbrIteration %nombre iterration
+  erreur =[];%pour chaque instance du dataset
+        for j=1:size(X,1)-22 %nombre dechantillon a parcourir 
+          [couche1,output]= FeedForward(X(j,:),poids1,poids2); %caclule du output 'hypothese' avec les poid en entrer vd : Calcul de la sortie prévue ?
+          
+          erreur= [erreur; (Y(j)-output).^2];%fonction d'erreur
+          
     
-display(P);
-display(PrecisionTest);
+          [poids1,poids2]=BackPropagation(X(j,:),couche1,poids1,poids2,Y(j,:),output); %Mise à jour les poids en fonctions du output trouvÃ© vd : Mise à jour des poids et des biais
+          
+
+        end
+cost=[cost;sum(erreur)]; %La somme de toutes les erreurs pour une interaction
+
+end
+
+cost=cost/(size(X,1)*2);%La moyenne de toutes les erreurs
+
+k =min(cost(end:end));
+l = ['Cost ',num2str(k),'.'];
+disp(l);
+
+
+
+
+figure('name','les Fonctions de coûts'); % titre de la figure cost Function
+plot(cost(:,1), 'g','LineWidth', 2 );
+legend('Coût apprentissage');
+title('Fonction des coût'); 
+xlabel('Nombre des itérations'); 
+ylabel('Vecteur de coût'); 
+
+PlotResultat(X,Y,poids1,poids2);
+
+
+
+%La precision de l'apprentissage
+Precisionn=Precision(Xapprentissage, Yapprentissage,couche1);
+display(['La precision apprentissage= ', num2str(Precisionn),' % .']);
+ %fprintf('Précision apprentissag: %f \n', Precisionn);
+
+
+%La precision de tests
+o=Precision(XTest, YTest,couche1);
+display(['La precision des tests = ', num2str(o),' % .']);
+
+%La precision de validation
+PrecisionValidation=Precision(XValidation, YValidation,couche1);
+display(['La precision de validation = ', num2str(PrecisionValidation),' % .']);
+
 
 

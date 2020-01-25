@@ -1,7 +1,7 @@
-function [Layer1,Output] = feedforward (Input,Weight1,Weight2)
+function [couche1,Output] = FeedForward (Input,poids1,poids2)
     
-    Layer1 = Sigmoid(Input*Weight1); 
+    couche1 = Sigmoid(Input*poids1);
     
-    Output= Sigmoid(Layer1*Weight2);
+    Output= Sigmoid(couche1*poids2);
     
 end
